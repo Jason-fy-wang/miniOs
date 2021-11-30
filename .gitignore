@@ -86,3 +86,4 @@ build
 #qt creator
 build-*
 
+.vscode
