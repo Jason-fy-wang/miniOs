@@ -1,0 +1,19 @@
+# build config for bochs
+./configure --prefix=/mnt/bochs --enable-debugger --enable-disasm --enable-iodebug --enable-x86-debugger --with-x --with-x11
+
+
+--prefix=/your_path/b ochs 用来指定 ochs 的安装 目录，根据个人实际情况将 your_path 替换为自己待安装的路径。
+enable-debugger 打开 bochs 自己的调试器。
+enable-disasm bochs 支持反汇编。
+enable-iodebug 启用 io 接口调试器。
+--enable-x86-debugger 支持 x86 调试器。
+--with-x 使用 windowso
+--with-xll 使用 xll 图形用户接口。
+
+
+
+# 创建一个硬盘
+bximage -hd -mode=”flat" -si ze=60 -q hd60M. img
+
+ata0-master: type=disk, path="hd60M.img", mode=flat
+
