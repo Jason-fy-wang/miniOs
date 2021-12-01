@@ -13,7 +13,9 @@ enable-iodebug 启用 io 接口调试器。
 
 
 # 创建一个硬盘
-bximage -hd -mode=”flat" -si ze=60 -q hd60M. img
+bximage -hd -mode=”flat" -size=60 -q hd60M. img
 
 ata0-master: type=disk, path="hd60M.img", mode=flat
+
+dd if=chapter-3/boot/mbr.bin of=hd60M.img  bs=512 count=1 conv=notrunc
 
