@@ -119,3 +119,4 @@ rd_disk_m_16:
     db 0x55, 0xAA
 
 ; nasm -I include/  -o mbr.bin mbr2.S
+; ndisasm  mbr2.bin >> bin.asm  反汇编
