@@ -69,7 +69,7 @@ loader_start:
     or eax, 0x00000001
     mov cr0, eax
 
-    jmp dword SELECTOR_CODE:p_mode_start
+    jmp dword SELECTOR_CODE:p_mode_start    ; 刷新流水线
 
 [bits 32]
 p_mode_start:
