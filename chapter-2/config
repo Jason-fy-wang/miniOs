@@ -19,3 +19,7 @@ ata0-master: type=disk, path="hd60M.img", mode=flat
 
 dd if=chapter-3/boot/mbr.bin of=hd60M.img  bs=512 count=1 conv=notrunc
 
+
+xxd -u -a -g 1 -s 起始位置  -l 要查看的连续字节数  待查看的文件
+xxd -u -a -g 1 -s $2 -l $3 $1
+
