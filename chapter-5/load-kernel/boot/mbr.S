@@ -45,7 +45,7 @@ SECTION MBR vstart=BIOSENTRY
     mov cx, 4                   ; 要加载的扇区数量
     call rd_disk_m_16
 
-    jmp LOADER_BASE_ADDR    ; 跳转到loader执行,即交接到下一棒
+    jmp LOADER_BASE_ADDR +0x300   ; 跳转到loader执行,即交接到下一棒
 
 ;-------------------------------
 ; 功能: 读取硬盘n个扇区

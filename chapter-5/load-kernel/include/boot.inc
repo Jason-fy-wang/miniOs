@@ -51,7 +51,7 @@ PG_US_U equ 100b
 
 
 ; -------------------------------- load kernel
-KERNEL_START_SECTOR  equ  0x09
+KERNEL_START_SECTOR  equ  0x9
 KERNEL_BIN_BASE_ADDR equ 0x70000
 PT_NULL equ 0
 KERNEL_ENTRY_POINT equ 0xc0001500

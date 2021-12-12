@@ -151,12 +151,6 @@ p_mode_start:
     mov ax, SELECTOR_VIDEO
     mov gs, ax
 
-    ; load kernel
-    mov eax, KERNEL_START_SECTOR    ;kernel所在扇区
-    mov ebx, KERNEL_BIN_BASE_ADDR
-    mov ecx, 200                    ;
-    call rd_disk_m_32
-
     ;  创建 page table
     call setup_page
 
@@ -184,13 +178,9 @@ p_mode_start:
     ; 启用分页后,重新加载gdt
     lgdt [gdt_ptr]
 
-    jmp SELECTOR_CODE:enter_kernel
+    mov byte [gs:162],'V'
 
-enter_kernel:
-    call kenel_init
-    mov esp, 0xc009f000
-    jmp KERNEL_ENTRY_POINT
-
+    jmp $
 
     ; 创建也目录以及 页表
     ; 看到函数是没有 . 的
@@ -246,107 +236,5 @@ setup_page:
     loop .create_kernel_pde
     ret
 
-; 保护模式下硬盘读取函数
-;eax = LBA 扇区号
-;bx = 将要读取的内存位置
-;cx = 读入的扇区数
-rd_disk_m_32:
-    mov esi, eax
-    mov di, cx
 
-    ;第一步: 设置要读取的扇区数量
-    mov dx, 0x1f2
-    mov al, cl
-    out dx, al
-
-    mov eax, esi
-
-    ; 第二步: 将LBA 地址存入 0x1f4-0x1f6
-    mov dx, 0x1f3
-    out dx, al
-
-    mov cl, 8
-    shr eax, cl
-    mov dx, 0x1f4
-    out dx, al
-
-    shr eax, cl
-    mov dx, 0x1f5
-    out dx, al
-
-    shr eax, cl
-    and al, 0x0f
-    or al, 0xE0
-    mov dx, 0x1f6
-    out dx, al
-
-    ; 第三步: 向0x1f7 写入读取命令0x20
-    mov dx, 0x1f7
-    mov al, 0x20
-    out dx, al
-
-.not_ready:
-    nop
-    in al, dx
-    and al, 0x88
-    cmp al, 0x08
-    jnz .not_ready
-
-    mov ax, di
-    mov dx, 256
-    mul dx
-    mov cx, ax
-    mov dx, 0x1f0
-.go_on_read:
-    in ax, dx
-    mov [bx], ax
-    add bx, 2
-    loop .go_on_read
-    ret
-
-; ------------------ 将kernel.bin中的segment 拷贝到编译的地址
-kernel_init:
-    xor eax, eax
-    xor ebx, ebx    ;记录程序头表地址
-    xor ecx, ecx    ; cx记录程序头中 program header 数量
-    xor edx, edx    ; dx 记录program header 尺寸, 即e_phentsize
-
-    mov dx, [KERNEL_BIN_BASE_ADDR+42]   ;偏移文件42字节处的属性是e_phentsize, 表示program header 大小
-    mov ebx,[KERNEL_BIN_BASE_ADDR+28]   ;偏移文件开始部分28字节的地址是 e_phoff,表示第一个program header在文件中的偏移量
-
-    add ebx, KERNEL_BIN_BASE_ADDR
-    mov cx, [KERNEL_BIN_BASE_ADDR+44]    ; 偏移文件开始部分44字节的地方是e_phnum, 表示有几个program header
-
-.each_segment:
-    cmp byte [ebx+0], PT_NULL       ; 如果 p_type为PT_NULL ,说明此 program header 未使用
-    je .PTNULL
-
-    ; 为函数memcpy压入参数, 参数是从右往左顺序压入
-    ; 函数原型: memcpy(dst, src, size)
-    push dword [ebx + 16]   ; program header 偏移16字节的地方是p_filesize, 对应第三个参数 size
-    mov eax, [ebx + 4]      ; 距程序头偏移量为4字节的位置为 p_offset
-    add eax, KERNEL_BIN_BASE_ADDR   ; 加上kernel.bin被加载的物理地址,eax为该段的物理地址,即源地址
-    push eax
-    push dword [ebx + 8]    ; 目的地址. 偏移程序头8字节的位置是p_vaddr, 这就是目的地址
-    call mem_cpy
-    add esp, 12
-
-.PTNULL:
-    add ebx, edx        ;edx为program header的大小, 即e_phentsize.在此 ebx指向下一个program header
-    loop .each_segment  ;
-    ret
-
-mem_cpy:
-    cld
-    push ebp
-    mov ebp, esp
-    push ecx    ; rep 使用到的ecx
-
-    mov edi, [ebp + 8]  ; dst
-    mov esi, [ebp + 12] ; src
-    mov ecx, [ebp + 16] ; size
-    rep movsb
-
-    pop ecx, pop ebp
-    ret
 
