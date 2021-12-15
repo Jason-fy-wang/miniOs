@@ -1,8 +1,10 @@
 TI_GDT equ 0
 RPL0 equ 0
 SELECTOR_VIDEO equ (0x0003 << 3) + TI_GDT + RPL0
-
+section .data
+put_int_buffer  dq 0
 [bits 32]
+section .text
 ;-----------------------put char-----------------------------------------
 ;  功能: 把栈中的1个字符写入光标所在处
 ;-----------------------------
@@ -122,4 +124,90 @@ put_char:
     popad
     ret
 
+;-----------------------
+; put_str 通过put_char来打印以0字符结尾的字符串
+;-----------------------
+; 输入:栈中参数为打印的字符串
+; 输出: 无
 
+global put_str
+put_str:
+    push ebx    ; 由于使用到了ebx和ecx寄存器,故备份此两个寄存器
+    push ecx
+    xor ecx, ecx
+    mov ebx, [esp+12]
+.goon:
+    mov cl, [ebx]
+    cmp cl, 0
+    jz .str_over
+    push ecx
+    call put_char
+    add esp, 4
+    inc ebx
+    jmp .goon
+
+.str_over:
+    pop ecx
+    pop ebx
+    ret
+
+; --------------------------------将小端字节序的数字变成对应的ASCII后,倒置
+; 输入: 栈中参数为待打印的数字
+; 输出: 在屏幕是哪个打印16位进制数字, 并不会打印前缀0x
+; 如打印10进制15时, 只会打印f
+;--------------------------------------------------------
+global put_int
+put_int:
+    pushad
+    mov ebp, esp
+    mov eax, [ebp+4*9]      ; call的返回地址占4字节+pushad的8个4字节
+    mov edx, eax
+    mov edi, 7
+    mov ecx, 8
+    mov ebx, put_int_buffer
+.16based_4bits:
+    ;将32位数字按照16进制的形式从低位到高位逐个处理,共处理8个16进制数组
+    and edx, 0x0000000f
+    cmp edx, 9
+    jg  .is_A2F
+    add edx, '0'
+    jmp .store
+
+.is_A2F:
+    sub edx, 10
+    add edx, 'A'
+
+.store:
+    mov [ebx+edi], dl
+    dec edi
+    shr eax, 4
+    mov edx, eax
+    loop .16based_4bits
+.ready_to_print:
+    inc edi
+
+.skip_prefix_0:
+    cmp edi, 8
+
+    je .full0
+.go_to_skip:
+    mov cl, [put_int_buffer+edi]
+    inc edi
+    cmp cl,'0'
+    je .skip_prefix_0
+    dec edi
+    jmp .put_each_num
+
+.full0:
+    mov cl,'0'
+
+.put_each_num:
+    push ecx
+    call put_char
+    add esp, 4
+    inc edi
+    mov cl, [put_int_buffer+edi]
+    cmp edi, 8
+    jl .put_each_num
+    popad
+    ret
