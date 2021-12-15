@@ -20,7 +20,7 @@ intr%1entry:
 
     ; 如果是从片上进入的中断,除了往从片上发送EOI 外, 还要往主片上发送EOI
     mov al, 0x20
-    out 0x10, al        ; 向从片发送EOI
+    out 0xa0, al        ; 向从片发送EOI
     out 0x20, al        ; 向主片发送EOI
 
     add esp, 4      ; 跳过error_code
