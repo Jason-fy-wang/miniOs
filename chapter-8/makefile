@@ -1,10 +1,11 @@
 BUILD=build
+ENTRY_POINT=0xc0001500
 BOOTDISK=hd60M.img
 FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/ -I device/
 CC=gcc
-CFLAG=-m32 -fno-stack-protector
+CFLAGS=-m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
 LD=ld
-LDFLAG=-m elf_i386
+LDFLAG=-m elf_i386 -Map $(BUILD)/kernel.map -Ttext $(ENTRY_POINT) -e main
 AS=nasm
 
 LIB_SRC=lib/kernel/print.S
@@ -25,7 +26,7 @@ $(BUILD)/print.o: $(LIB_SRC)
 	(cd lib; make)
 
 $(BUILD)/kernel.bin: $(KERNEL_SRC)
-	$(LD) $(LDFLAG) -Ttext 0xc0001500 -e main -o $@  $^
+	$(LD) $(LDFLAG) -o $@  $^
 
 $(BUILD)/timer.o:
 	(cd device; make)
