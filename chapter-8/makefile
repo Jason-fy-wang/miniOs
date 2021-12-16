@@ -9,7 +9,7 @@ LDFLAG=-m elf_i386 -Map $(BUILD)/kernel.map -Ttext $(ENTRY_POINT) -e main
 AS=nasm
 
 LIB_SRC=lib/kernel/print.S
-KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o $(BUILD)/kernel.o $(BUILD)/timer.o $(BUILD)/debug.o
+KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o $(BUILD)/kernel.o $(BUILD)/timer.o $(BUILD)/debug.o $(BUILD)/bitmap.o  $(BUILD)/memory.o $(BUILD)/string.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"

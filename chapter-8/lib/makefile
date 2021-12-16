@@ -1,6 +1,6 @@
 BUILD=../build
 CC=gcc
-CFLAG=-I .  kernel/
+CFLAG=-I .  -I kernel/ -I ../kernel -m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
 LD=ld
 AS=nasm -f elf
 
@@ -16,8 +16,7 @@ AS=nasm -f elf
 %.s: %.c
 	$(CC) $(CFLAG) -S -o $(BUILD)/$*.s $<
 
-lib/kernel:
-	(cd kernel; make)
+
 
 SRC=$(subst .c,.o, $(wildcard *.c))
 OBJ=$(subst .S,.o, $(wildcard *.S))
@@ -26,6 +25,9 @@ ASM=$(subst .c,.s, $(wildcard *.c))
 all: $(SRC) $(OBJ) lib/kernel
 	@echo $(SRC)
 	@echo $(OBJ)
+
+lib/kernel:
+	(cd kernel; make)
 
 .PHONY: movlib clean
 
