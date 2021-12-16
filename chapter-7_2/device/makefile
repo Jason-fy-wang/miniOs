@@ -1,11 +1,8 @@
 BUILD=../build
 CC=gcc -m32
-CFLAG=-I ../include/ -I ../lib/ -I ../lib/kernel/ -I ../device -I . -nostdinc
+CFLAG=-I . -I ../lib/kernel/
 LD=ld
 AS=nasm -f elf
-
-#$(BUILD)/intrhandle.o: kernel.S
-	#$(AS) -f elf -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAG) -c -o $(BUILD)/$*.o  $<
@@ -20,9 +17,8 @@ SRC=$(subst .c,.o, $(wildcard *.c))
 OBJ=$(subst .S,.o, $(wildcard *.S))
 ASM=$(subst .c,.s, $(wildcard *.c))
 
-all: $(SRC) $(OBJ)
+all:$(SRC) $(OBJ)
 	@echo $(SRC)
-	@echo $(ASM)
 	@echo $(OBJ)
 
 .PHONY: movlib clean
@@ -33,5 +29,3 @@ clean:
 movlib:
 	-mv *.o $(BUILD)
 	-mv *.s $(BUILD)
-
-

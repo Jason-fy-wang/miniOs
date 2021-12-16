@@ -1,6 +1,6 @@
 BUILD=build
 BOOTDISK=hd60M.img
-FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/
+FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/ -I device/
 CC=gcc
 CFLAG=-m32 -fno-stack-protector
 LD=ld
@@ -8,7 +8,7 @@ LDFLAG=-m elf_i386
 AS=nasm
 
 LIB_SRC=lib/kernel/print.S
-KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o $(BUILD)/kernel.o
+KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o $(BUILD)/kernel.o $(BUILD)/timer.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"
@@ -26,6 +26,10 @@ $(BUILD)/print.o: $(LIB_SRC)
 
 $(BUILD)/kernel.bin: $(KERNEL_SRC)
 	$(LD) $(LDFLAG) -Ttext 0xc0001500 -e main -o $@  $^
+
+$(BUILD)/timer.o:
+	(cd device; make)
+
 
 .PHONY: clean disk dir boot movlib
 
@@ -56,7 +60,7 @@ disk:
 clean:
 	$(RM) -r build
 
-bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/main.o
+bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/main.o
 
 all:dir bootsec $(BUILD)/kernel.bin
 
