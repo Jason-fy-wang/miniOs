@@ -150,8 +150,8 @@ enum intr_status intr_disable(){
         asm volatile("cli":::"memory");     // 关中断指令 cli
     }else {
         old_status = INTR_OFF;
-        return old_status;
     }
+    return old_status;
 }
 
 

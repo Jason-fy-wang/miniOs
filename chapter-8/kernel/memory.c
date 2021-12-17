@@ -2,6 +2,7 @@
 #include "stdint.h"
 #include "print.h"
 #include "debug.h"
+#include "string.h"
 
 #define PG_SIZE 4096
 
@@ -102,7 +103,7 @@ static void page_table_add(void* _vaddr, void* _page_phyaddr){
 
 // 分配pg_cnt个页空间，成功则返回起始虚拟地址，失败则返回NULL
 void * malloc_page(enum pool_flags pf, uint32_t pg_cnt){
-    ASSERT(pg_cnt >0 & pg_cnt < 3840);      // 目前内存小,3840 表示不可超过15M
+    ASSERT(pg_cnt >0 && pg_cnt < 3840);      // 目前内存小,3840 表示不可超过15M
     /******
      * 分配动作:
      * 1.通过 vaddr_get 在虚拟内存池中申请虚拟地址
