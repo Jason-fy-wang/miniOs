@@ -1,7 +1,7 @@
 BUILD=build
 ENTRY_POINT=0xc0001500
 BOOTDISK=hd60M.img
-FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/ -I device/
+FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/ -I device/ -I thread/
 CC=gcc
 CFLAGS=-m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
 LD=ld
@@ -9,7 +9,9 @@ LDFLAG=-m elf_i386 -Map $(BUILD)/kernel.map -Ttext $(ENTRY_POINT) -e main
 AS=nasm
 
 LIB_SRC=lib/kernel/print.S
-KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o $(BUILD)/kernel.o $(BUILD)/timer.o $(BUILD)/debug.o $(BUILD)/bitmap.o  $(BUILD)/memory.o $(BUILD)/string.o
+KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o 	\
+			$(BUILD)/kernel.o $(BUILD)/timer.o $(BUILD)/debug.o $(BUILD)/bitmap.o   \
+			$(BUILD)/memory.o $(BUILD)/string.o $(BUILD)/thread.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"
@@ -31,6 +33,8 @@ $(BUILD)/kernel.bin: $(KERNEL_SRC)
 $(BUILD)/timer.o:
 	(cd device; make)
 
+$(BUILD)/thread.o:
+	(cd thread; make)
 
 .PHONY: clean disk dir boot movlib
 
@@ -61,7 +65,7 @@ disk:
 clean:
 	$(RM) -r build
 
-bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/main.o
+bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/thread.o $(BUILD)/main.o
 
 all:dir bootsec $(BUILD)/kernel.bin
 
