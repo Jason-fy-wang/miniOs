@@ -1,6 +1,7 @@
 #ifndef __KERNEL_THREAD_H__
 #define __KERNEL_THREAD_H__
 #include "stdint.h"
+#include "list.h"
 
 typedef void thread_func(void*);
 
@@ -69,6 +70,15 @@ struct task_struct{
     enum task_status status;
     uint8_t priority;
     char name[16];
+    uint8_t ticks;          // 每次在处理器上执行的时间嘀嗒数
+    uint32_t elapsed_ticks; // 占用了多少cpu嘀嗒数
+
+    struct list_elem generate_tag;
+
+    struct list_elem all_list_tag;
+
+    uint32_t* pgdir;        // 继承自己页表的虚拟地址
+
     uint32_t stack_magic; // 栈边界标记,用于检测栈溢出
 };
 
@@ -77,8 +87,8 @@ void init_thread(struct task_struct *pthread, char*name, int prio);
 
 struct task_struct* thread_start(char* name, int prio, thread_func function, void* func_arg);
 
-
-
+void schedule(void);
+struct task_struct* running_thread(void);
 
 #endif /* __KERNEL_THREAD_H__ */
 

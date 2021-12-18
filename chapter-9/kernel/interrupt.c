@@ -71,9 +71,29 @@ static void general_intr_handler(uint8_t vec_nr){
         // IRQ7 IRQ15 会产生伪中断,无需处理
         return;
     }
-    put_str("int vector: 0x");
-    put_int(vec_nr);
-    put_char('\n');
+    set_cursor(0);
+    int curent_pos = 0;
+    while(curent_pos < 320){
+        put_char(' ');
+        curent_pos++;
+    }
+
+    // 将光标设置为0, 从屏幕左上角清出一片打印异常信息的区域
+    set_cursor(0);
+    put_str("!!!!! exception message begin !!!!!!\n");
+    set_cursor(88);
+    put_str(intr_name[vec_nr]);
+
+    if(vec_nr == 14){       // pagefault, 将缺失的地址打印出来
+        int page_fault_vaddr = 0;
+        asm volatile("movl %%cr2, %0":"=r"(page_fault_vaddr));
+        put_str("\n page failt addr is: ");
+        put_str("page_fault_vaddr");
+    }
+    put_str("\n  exception message end\n");
+    // 能进入中断处理程序表示已经处在中断情况下
+    // 不会出现进程调度情况. 故下面的while(1)不会被中断
+    while(1);
 }
 
 static void exception_init(void){
@@ -152,6 +172,12 @@ enum intr_status intr_disable(void){
         old_status = INTR_OFF;
     }
     return old_status;
+}
+
+// 注册中断处理程序
+void register_handler(uint8_t vector_no, intr_handler function){
+
+    idt_table[vector_no] = function;
 }
 
 
