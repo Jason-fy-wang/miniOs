@@ -61,7 +61,7 @@ static void pic_init(void){
 
     // 打开主片的IR0, 也就是目前只接受时钟中断
     //outb(PIC_M_DATA, 0xfe);  // OCW1 打开时钟中断
-    outb(PIC_M_DATA, 0Xfd);      // 只打开键盘中断
+    outb(PIC_M_DATA, 0Xfc);      // 只打开键盘中断
     outb(PIC_S_DATA, 0xFF); // 从OCW1 禁止所有中断
 
     put_str("pic init done\n");

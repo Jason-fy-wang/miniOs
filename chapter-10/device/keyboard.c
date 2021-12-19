@@ -3,6 +3,7 @@
 #include "interrupt.h"
 #include "io.h"
 #include "global.h"
+#include "ioqueue.h"
 
 #define KBD_BUF_PORT 0x60   //键盘buffer寄存器端口号
 
@@ -35,6 +36,8 @@
 
 // 定义变量用于记录相应按键是否按下
 static bool ctrl_status, shift_status,alt_status,caps_lock_status, ext_scancode;
+
+struct ioqueue kbd_buf;
 
 // 通码make_code为索引的二维数组
 static char keymap[][2]= {
@@ -177,7 +180,11 @@ static void intr_keyboard_handler(void){
 
         // 处理ASCII码不为0
         if(cur_char){
-            put_char(cur_char);
+            //put_char(cur_char);
+            if(!ioq_full(&kbd_buf)){
+                put_char(cur_char);
+                ioq_putchar(&kbd_buf, cur_char);
+            }
             return;
         }
         // 记录本次是否按下了下面几类控制键,供下次键入时判断组合键
@@ -208,6 +215,7 @@ static void intr_keyboard_handler(void){
 // 键盘初始化
 void keyboard_init(void){
     put_str("keyboard init start \n");
+    ioqueue_init(&kbd_buf);
     register_handler(0x21, intr_keyboard_handler);
     put_str("keyboard init done\n");
 }
