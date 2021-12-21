@@ -18,12 +18,12 @@ void sema_down(struct semaphore* psema){
     enum intr_status old_status = intr_disable();
     while(psema->value  == 0){
         // 并且当前线程不在信号量 等待队列中
-        ASSERT(!(elem_find(&psema->waiters, &running_thread()->generate_tag)));
-        if(elem_find(&psema->waiters,&running_thread()->generate_tag)){
+        ASSERT(!(elem_find(&psema->waiters, &running_thread()->general_tag)));
+        if(elem_find(&psema->waiters,&running_thread()->general_tag)){
             PANIC("sema down: thread blocked has been in waiters_list\n");
         }
         // 信号量的值等于0,则表明不可用,则把自己添加到 等待队列中
-        list_append(&psema->waiters, &running_thread()->generate_tag);
+        list_append(&psema->waiters, &running_thread()->general_tag);
         thread_block(TASK_BLOCKED);
     }
     // 若value为1 或被唤醒后,会执行下面的代码,也就是获得了锁
@@ -38,7 +38,7 @@ void sema_up(struct semaphore* psema){
     ASSERT(psema->value  == 0);
 
     if(!(list_empty(&psema->waiters))){
-        struct task_struct* thread_blocked = elem2entry(struct task_struct, generate_tag,list_pop(&psema->waiters));
+        struct task_struct* thread_blocked = elem2entry(struct task_struct, general_tag,list_pop(&psema->waiters));
         thread_unblock(thread_blocked);
     }
 

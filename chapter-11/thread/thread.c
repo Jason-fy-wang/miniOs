@@ -5,8 +5,7 @@
 #include "interrupt.h"
 #include "list.h"
 #include "debug.h"
-
-#define PG_SIZE 4096
+#include "process.h"
 
 struct task_struct* main_thread;        //  主线程PCB
 struct list thread_ready_list;          // 就绪队列
@@ -60,7 +59,7 @@ void init_thread(struct task_struct *pthread, char*name, int prio){
     }
 
     // self_kstack 是线程自己在内核态下使用的栈顶地址
-    pthread->self_kstack = (uint32_t)((uint32_t)pthread+PG_SIZE);
+    pthread->self_kstack = (uint32_t*)((uint32_t)pthread+PG_SIZE);
     pthread->priority = prio;
     pthread->ticks = prio;
     pthread->elapsed_ticks = 0;
@@ -77,9 +76,9 @@ struct task_struct* thread_start(char* name, int prio, thread_func function, voi
     thread_create(thread, function, func_arg);
 
     // 确保之前不在队列中
-    ASSERT(!(elem_find(&thread_ready_list, &thread->generate_tag)));
+    ASSERT(!(elem_find(&thread_ready_list, &thread->general_tag)));
     // 加入就绪队列中
-    list_append(&thread_ready_list, &thread->generate_tag);
+    list_append(&thread_ready_list, &thread->general_tag);
 
     ASSERT(!(elem_find(&thread_all_list, &thread->all_list_tag)));
     //加入全部队列中
@@ -111,8 +110,8 @@ void schedule(void){
     struct task_struct *cur = running_thread();
 
     if(cur->status == TASK_RUNNING){
-        ASSERT(!(elem_find(&thread_ready_list, &cur->generate_tag)));
-        list_append(&thread_ready_list, &cur->generate_tag);
+        ASSERT(!(elem_find(&thread_ready_list, &cur->general_tag)));
+        list_append(&thread_ready_list, &cur->general_tag);
         cur->ticks = cur->priority;
         // 重新更新 ticks 和priority
         cur->status = TASK_READY;
@@ -126,8 +125,10 @@ void schedule(void){
     thread_tag = NULL;
     thread_tag = list_pop(&thread_ready_list);
 
-    struct task_struct *next = elem2entry(struct task_struct, generate_tag, thread_tag);
-    next->status = TASK_RUNNING;;
+    struct task_struct *next = elem2entry(struct task_struct, general_tag, thread_tag);
+    next->status = TASK_RUNNING;
+
+    process_activate(next);
     switch_to(cur, next);
 }
 
@@ -150,11 +151,11 @@ void thread_unblock(struct task_struct *pthread){
     ASSERT((pthread->status == TASK_BLOCKED) || (pthread->status == TASK_WAITTING) || (pthread->status == TASK_HANGING));
 
     if(pthread->status != TASK_READY){
-        ASSERT(!(elem_find(&thread_ready_list, &pthread->generate_tag)));
-        if(elem_find(&thread_ready_list, &pthread->generate_tag)){
+        ASSERT(!(elem_find(&thread_ready_list, &pthread->general_tag)));
+        if(elem_find(&thread_ready_list, &pthread->general_tag)){
             PANIC("thread_unblock: blocked thread in ready_list\n");
         }
-        list_push(&thread_ready_list, &pthread->generate_tag);
+        list_push(&thread_ready_list, &pthread->general_tag);
         pthread->status = TASK_READY;
     }
 
