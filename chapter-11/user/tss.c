@@ -46,10 +46,10 @@ static struct gdt_desc make_gdt_desc(uint32_t* desc_addr, uint32_t limit, uint8_
     uint32_t desc_base = (uint32_t)desc_addr;
     struct gdt_desc desc;
     desc.limit_low_word = limit & 0x0000ffff;
-    desc.base_low_word = desc_base & 0x0000ffff;;
+    desc.base_low_word = desc_base & 0x0000ffff;
     desc.base_mid_byte = ((desc_base & 0x00ff0000) >> 16);
     desc.attr_low_byte = (uint8_t)(attr_low);
-    desc.limit_high_attr_high = ((limit & 0x000f0000) >> 16) + (uint8_t)(attr_high);
+    desc.limit_high_attr_high = (((limit & 0x000f0000) >> 16) + (uint8_t)(attr_high));
     desc.base_high_byte = desc_base >> 24;
     return desc;
 }
@@ -67,7 +67,7 @@ void tss_init(void){
     *((struct gdt_desc*)0xc0000920) = make_gdt_desc((uint32_t*)&tss, tss_size-1,TSS_ATTR_LOW, TSS_ATTR_HIGH);
 
     // 在gdt中添加DPL为3的数据段和代码段描述符
-    *((struct gdt_desc*)0xc0000928) = make_gdt_desc((uint32_t*)0, 0xFFFFF,GDT_CODE_ATTR_LOW_DPL3,GDT_ATTR_HIGH);
+    *((struct gdt_desc*)0xc0000928) = make_gdt_desc((uint32_t*)0, 0xfffff,GDT_CODE_ATTR_LOW_DPL3,GDT_ATTR_HIGH);
 
     *((struct gdt_desc*)0xc0000930) = make_gdt_desc((uint32_t*)0,0xfffff,GDT_DATA_ATTR_LOW_DPL3,GDT_ATTR_HIGH);
 

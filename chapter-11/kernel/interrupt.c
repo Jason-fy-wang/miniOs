@@ -8,12 +8,12 @@
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
-#define IDE_DESC_CNT 0x30  // 支持的中断数
+#define IDT_DESC_CNT 0x30  // 支持的中断数
 #define EFLAGS_IF 0x00000200
 #define GET_EFLAGS(EFLAG_VAR) asm volatile("pushfl; popl %0":"=g"(EFLAG_VAR))
 
-char * intr_name[IDE_DESC_CNT];
-intr_handler idt_table[IDE_DESC_CNT];
+char * intr_name[IDT_DESC_CNT];
+intr_handler idt_table[IDT_DESC_CNT];
 // 中断门描述符结构体
 struct gate_desc {
   uint16_t func_offset_low_word;
@@ -26,21 +26,21 @@ struct gate_desc {
 //静态函数声明
 static void make_idt_desc(struct gate_desc *p_gdesc, uint8_t attr,
                           intr_handler function);
-static struct gate_desc idt[IDE_DESC_CNT];           //中断门描述符数组
-extern intr_handler intr_entry_table[IDE_DESC_CNT];  // 中断处理函数入口数组
+static struct gate_desc idt[IDT_DESC_CNT];           //中断门描述符数组
+extern intr_handler intr_entry_table[IDT_DESC_CNT];  // 中断处理函数入口数组
 
 static void make_idt_desc(struct gate_desc *p_gdesc, uint8_t attr,
                           intr_handler function) {
     p_gdesc->dcount = 0;
     p_gdesc->func_offset_low_word = (uint32_t)function & 0x0000ffff;
-    p_gdesc->func_offset_high_word = (uint32_t)function & 0xffff0000;
+    p_gdesc->func_offset_high_word = ((uint32_t)function & 0xffff0000) >> 16;
     p_gdesc->attribute = attr;
     p_gdesc->selector = SELECTOR_K_CODE;
 }
 
 static void idt_desc_init(void){
     int i=0;
-    for(i=0; i< IDE_DESC_CNT; i++){
+    for(i=0; i< IDT_DESC_CNT; i++){
         make_idt_desc(&idt[i], IDT_DESC_ATTR_DPL0, intr_entry_table[i]);
     }
     put_str("idt_desc_init done\n");
@@ -61,7 +61,7 @@ static void pic_init(void){
 
     // 打开主片的IR0, 也就是目前只接受时钟中断
     //outb(PIC_M_DATA, 0xfe);  // OCW1 打开时钟中断
-    outb(PIC_M_DATA, 0Xfc);      // 只打开键盘中断
+    outb(PIC_M_DATA, 0Xfe);      // 只打开键盘中断
     outb(PIC_S_DATA, 0xFF); // 从OCW1 禁止所有中断
 
     put_str("pic init done\n");
@@ -99,7 +99,7 @@ static void general_intr_handler(uint8_t vec_nr){
 
 static void exception_init(void){
     int i;
-    for(i = 0; i< IDE_DESC_CNT; i++){
+    for(i = 0; i< IDT_DESC_CNT; i++){
         idt_table[i] = general_intr_handler;
         intr_name[i] = "unknown";
     }
@@ -134,7 +134,7 @@ void idt_init(void){
     pic_init();             // 初始化8259A
 
     // 加载idt
-    uint64_t idt_operand = ((sizeof(idt)-1) | ((uint64_t)((uint32_t)idt << 16)));
+    uint64_t idt_operand = ((sizeof(idt)-1) | ((uint64_t)(uint32_t)idt << 16));
     asm volatile("lidt %0;"::"m"(idt_operand));
     put_str("idt_init done\n");
 }
@@ -158,7 +158,7 @@ enum intr_status intr_enable(void){
         return old_status;
     }else {
         old_status = INTR_OFF;
-        asm volatile("sti;");       // 开中断指令 sti
+        asm volatile("sti");       // 开中断指令 sti
     }
     return old_status;
 }
@@ -168,7 +168,7 @@ enum intr_status intr_disable(void){
     enum intr_status old_status;
     if(INTR_ON == intr_get_status()){
         old_status = INTR_ON;
-        asm volatile("cli":::"memory");     // 关中断指令 cli
+        asm volatile("cli": : :"memory");     // 关中断指令 cli
     }else {
         old_status = INTR_OFF;
     }

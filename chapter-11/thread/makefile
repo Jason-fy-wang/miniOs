@@ -1,6 +1,6 @@
 BUILD=../build
 CC=gcc
-CFLAG=-I . -I ../kernel -I ../lib/kernel -I ../lib -m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
+CFLAG=-I . -I ../kernel -I ../lib/kernel -I ../lib -I ../user/ -m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
 LD=ld
 AS=nasm -f elf
 

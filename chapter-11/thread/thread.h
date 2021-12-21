@@ -2,6 +2,7 @@
 #define __KERNEL_THREAD_H__
 #include "stdint.h"
 #include "list.h"
+#include "memory.h"
 
 typedef void thread_func(void*);
 
@@ -38,7 +39,7 @@ struct intr_stack{
     uint32_t err_code;  //
     void (*eip)(void);
     uint32_t cs;
-    uint32_t cflags;
+    uint32_t eflags;
     void* esp;
     uint32_t ss;
 };
@@ -66,21 +67,26 @@ struct thread_stack {
 
 // 进程或线程的PCB, 程序控制块
 struct task_struct{
-    uint32_t self_kstack;   //各内核线程都用自己的内核栈
+    uint32_t* self_kstack;   //各内核线程都用自己的内核栈
     enum task_status status;
     uint8_t priority;
     char name[16];
     uint8_t ticks;          // 每次在处理器上执行的时间嘀嗒数
     uint32_t elapsed_ticks; // 占用了多少cpu嘀嗒数
 
-    struct list_elem generate_tag;
+    struct list_elem general_tag;
 
     struct list_elem all_list_tag;
 
     uint32_t* pgdir;        // 继承自己页表的虚拟地址
 
+    struct virtual_addr userprog_vaddr; // 用户进程的虚拟地址
+
     uint32_t stack_magic; // 栈边界标记,用于检测栈溢出
 };
+
+extern struct list thread_ready_list;          // 就绪队列
+extern struct list thread_all_list;            // 所有任务队列
 
 void thread_create(struct task_struct *pthread, thread_func function, void *func_arg);
 void init_thread(struct task_struct *pthread, char*name, int prio);

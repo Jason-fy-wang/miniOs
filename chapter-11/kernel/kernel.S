@@ -2,7 +2,6 @@
 %define ERROR_CODE nop  ;若在相关的异常中CPU已经自动压如了错误码,为保持格式统一,这里不做操作
 %define ZERO push 0     ; 若没有自动压入错误码,为了统一栈中格式,手工压入一个0
 
-extern put_str;
 extern idt_table;
 
 section .data
@@ -48,7 +47,7 @@ intr_exit:
     pop es
     pop ds
     add esp, 4      ; skip error_code
-    iret
+    iretd
 
 VECTOR 0x00, ZERO
 VECTOR 0x01, ZERO
@@ -62,7 +61,7 @@ VECTOR 0x08, ERROR_CODE
 VECTOR 0x09, ZERO
 VECTOR 0x0A, ERROR_CODE
 VECTOR 0x0B, ERROR_CODE
-VECTOR 0x0C, ERROR_CODE
+VECTOR 0x0C, ZERO
 VECTOR 0x0D, ERROR_CODE
 VECTOR 0x0E, ERROR_CODE
 VECTOR 0x0F, ZERO
