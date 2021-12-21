@@ -27,7 +27,6 @@ void start_process(void* filename_){
     proc_stack->eflags = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
     proc_stack->esp = (void*)((uint32_t)get_a_page(PF_USER,USER_STACK3_VADDR)+PG_SIZE);
     proc_stack->ss = SELECTOR_U_DATA;
-    console_put_str("start process running.....");
     asm volatile("movl %0, %%esp; jmp intr_exit"::"g"(proc_stack):"memory");
 }
 
