@@ -216,7 +216,7 @@ void mfree_page(enum pool_flags pf, void* _vaddr, uint32_t pg_cnt){
             pg_phy_addr = addr_v2p(vaddr);
 
             //确保物理地址位于用户物理内存池
-            ASSERT((pg_phy_addr & PG_SIZE)==0 && pg_phy_addr >= user_pool.phy_addr_start);
+            ASSERT((pg_phy_addr % PG_SIZE)==0 && pg_phy_addr >= user_pool.phy_addr_start);
             //先将对应的物理页归还到 内存池
             pfree(pg_phy_addr);
             //再从页表中清除此虚拟地址所在的页表项 pte
