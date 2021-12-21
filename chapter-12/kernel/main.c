@@ -21,8 +21,8 @@ int main(void){
     put_str("i am kernel\n");
     init_all();
 
-    process_execute(u_prog_a, "user_a");
-    process_execute(u_prog_b, "user_b");
+    //process_execute(u_prog_a, "user_a");
+    //process_execute(u_prog_b, "user_b");
 
     //打开中断
     intr_enable();
@@ -30,28 +30,26 @@ int main(void){
     console_put_int(sys_getpid());
     console_put_char('\n');
     thread_start("threadA", 31, k_thread_a,"A_");
-    thread_start("threadB", 8, k_thread_b,"B_");
+    thread_start("threadB", 31, k_thread_b,"B_");
     while (1);
     return 0;
 }
 
 void k_thread_a(void *arg_){
     char * arg = arg_;
-    console_put_str(" thread_a_pid:0x");
-    console_put_int(sys_getpid());
+    void* addr = sys_malloc(33);
+    console_put_str(" i am thread_a, sys_malloc(33) addr is:0x");
+    console_put_int((int)addr);
     console_put_char('\n');
-    console_put_str(" prog_a_pid:0x");
-    console_put_int(prog_a_pid);
     while(1);
 }
 
 void k_thread_b(void* arg_){
     char *arg = arg_;
-    console_put_str(" thread_b_pid:0x");
-    console_put_int(sys_getpid());
+    void* addr = sys_malloc(63);
+    console_put_str(" i am thread_b, sys_malloc(63) addr is:0x");
+    console_put_int((int)addr);
     console_put_char('\n');
-    console_put_str(" prog_b_pid:0x");
-    console_put_int(prog_b_pid);
     while(1);
 }
 
