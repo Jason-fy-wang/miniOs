@@ -7,6 +7,8 @@
 #include "process.h"
 #include "syscall_init.h"
 #include "syscall.h"
+#include "stdio.h"
+
 
 void k_thread_a(void *);
 void k_thread_b(void*);
@@ -25,7 +27,7 @@ int main(void){
     //打开中断
     intr_enable();
     console_put_str(" main_pid:0x");
-    console_put_str(sys_getpid());
+    console_put_int(sys_getpid());
     console_put_char('\n');
     thread_start("threadA", 31, k_thread_a,"A_");
     thread_start("threadB", 8, k_thread_b,"B_");
@@ -54,10 +56,10 @@ void k_thread_b(void* arg_){
 }
 
 void u_prog_a(void){
-    prog_a_pid = sys_getpid();
+    printf(" prog_a_pid:0x%x\n", get_pid());
     while(1);
 }
 void u_prog_b(void){
-    prog_b_pid = sys_getpid();
+    printf(" prog_b_pid:0x%x\n", get_pid());
     while(1);
 }
