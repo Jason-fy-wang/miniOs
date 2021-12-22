@@ -703,6 +703,7 @@ ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 #=======================================================================
 #ata0-master: type=disk, mode=flat, path="30M.sample"
 ata0-master: type=disk, mode=flat, path="/root/unix_c/hd60M.img"
+ata0-slave: type=disk, path="/root/unix_c/hd80M.img", mode=flat
 #ata0-master: type=disk, mode=flat, path="30M.sample", cylinders=615, heads=6, spt=17
 #ata0-master: type=disk, mode=flat, path="c.img", cylinders=0 # autodetect
 #ata0-slave: type=disk, mode=vvfat, path=/bochs/images/vvfat, journal=vvfat.redolog
