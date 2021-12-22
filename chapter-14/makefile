@@ -14,7 +14,8 @@ KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o
 			$(BUILD)/memory.o $(BUILD)/string.o $(BUILD)/thread.o $(BUILD)/list.o	\
 			$(BUILD)/switch.o $(BUILD)/console.o  $(BUILD)/sync.o $(BUILD)/keyboard.o \
 			$(BUILD)/ioqueue.o $(BUILD)/tss.o $(BUILD)/process.o $(BUILD)/syscall.o	\
-			$(BUILD)/syscall_init.o $(BUILD)/stdio.o $(BUILD)/stdio_kernel.o $(BUILD)/ide.o
+			$(BUILD)/syscall_init.o $(BUILD)/stdio.o $(BUILD)/stdio_kernel.o $(BUILD)/ide.o 	\
+			$(BUILD)/fs.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"
@@ -41,6 +42,9 @@ $(BUILD)/thread.o:
 
 $(BUILD)/tss.o:
 	(cd user; make)
+
+$(BUILD)/fs.o:
+	(cd fs; make)
 
 .PHONY: clean disk dir boot movlib
 
@@ -71,7 +75,7 @@ disk:
 clean:
 	$(RM) -r build
 
-bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/thread.o $(BUILD)/tss.o $(BUILD)/main.o
+bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/thread.o $(BUILD)/tss.o $(BUILD)/fs.o $(BUILD)/main.o
 
 all:dir bootsec $(BUILD)/kernel.bin
 

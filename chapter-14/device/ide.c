@@ -322,7 +322,7 @@ void intr_hd_handler(uint8_t irq_no){
     ASSERT(irq_no == 0x2e || irq_no == 0x2f);
     uint8_t ch_no = irq_no - 0x2e;
     struct ide_channel* channel = &channels[ch_no];
-    printk(" channel no: 0x%x, irq: 0x%x", channel->irq_no, irq_no);
+    //printk(" channel no: 0x%x, irq: 0x%x", channel->irq_no, irq_no);
     ASSERT(channel->irq_no == irq_no);
     if(channel->expecting_intr){
         channel->expecting_intr = false;
@@ -368,7 +368,7 @@ void ide_init(){
         // 初始化为0. 目的是想硬盘控制器请求数据后,硬盘驱动sema_down阻塞线程
         // 知道硬盘完成后通过发中断,由中断程序将此信号量sema_up, 唤醒线程.
         sema_init(&channel->disk_done, 0);
-        printk("register irq: 0x%x\n", channel->irq_no);
+        //printk("register irq: 0x%x\n", channel->irq_no);
         // 注册中断函数
         register_handler(channel->irq_no, intr_hd_handler);
 
