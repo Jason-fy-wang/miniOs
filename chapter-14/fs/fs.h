@@ -45,5 +45,7 @@ int32_t sys_close(int32_t fd);
 
 int32_t  sys_write(int32_t fd, const void* buf, uint32_t count);
 
+int32_t sys_read(int32_t fd, void* buf, uint32_t count);
+
 #endif // _FS_FS_H_
 

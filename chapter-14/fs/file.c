@@ -443,3 +443,123 @@ int32_t  file_write(struct file* file, const void* buf, uint32_t count){
     return bytes_written;
 }
 
+// 读取文件内容
+// 从文件file中读取count个字节到buf中, 返回读出的字节数, 若到文件尾则返回-1
+int32_t file_read(struct file* file, void* buf, uint32_t count){
+    uint8_t* buf_dst = (uint8_t*)buf;
+
+    uint32_t size = count;
+    uint32_t size_left = size;
+
+    // 若要读取的字节数超过了文件可读的剩余量,就用剩余量作为待读取的字节数
+    if((file->fd_pos + count) > file->fd_inode->i_size){
+        size = file->fd_inode->i_size - file->fd_pos;
+        size_left = size;
+        if(size == 0){  // 若到文件尾,则返回-1
+            return -1;
+        }
+    }
+
+    uint8_t* io_buf = sys_malloc(BLOCK_SIZE);
+    if(io_buf == NULL){
+        printk("file_read: sys_malloc for io_buf failed.\n");
+        return -1;
+    }
+
+    // 用来记录所有的块地址
+    uint32_t* all_blocks = (uint32_t*)sys_malloc(BLOCK_SIZE + 48);
+
+    if(all_blocks == NULL){
+        printk("file_read: sys_malloc for all_blocks failed.\n");
+        return -1;
+    }
+
+    // 数据块所在的起始地址
+    uint32_t block_read_start_idx = file->fd_pos / BLOCK_SIZE;
+    // 数据所在块的终止地址
+    uint32_t block_read_end_idx = (file->fd_pos+size) / BLOCK_SIZE;
+
+    // 增量为0,表示在同一扇区
+    uint32_t read_blocks = block_read_end_idx - block_read_start_idx;
+
+    ASSERT(block_read_start_idx < 139 && block_read_end_idx < 139);
+
+    // 用来获取一级间接地址
+    int32_t indirect_block_table ;
+    // 用来获取带读取的块地址
+    uint32_t block_idx;
+
+    if(read_blocks == 0){
+        // 在同一扇区内读取数据, 不涉及到跨扇区读取
+        ASSERT(block_read_end_idx == block_read_start_idx);
+
+        if(block_read_end_idx < 12) {
+            block_idx = block_read_end_idx;
+            all_blocks[block_idx] = file->fd_inode->i_sectors[block_idx];
+        }else{
+            // 用到了一级间接块,需要将间接块读取进来
+            indirect_block_table = file->fd_inode->i_sectors[12];
+            ide_read(cur_part->my_disk, indirect_block_table, all_blocks+12, 1);
+        }
+
+    }else { // 要读取多个块
+        //  情况1: 起始块和终止块 属于 直接块
+        if(block_read_end_idx < 12){
+            block_idx = block_read_start_idx;
+            while(block_idx <= block_read_end_idx){
+                all_blocks[block_idx] = file->fd_inode->i_sectors[block_idx];
+                block_idx++;
+            }
+
+        // 情况2: 待读入的数据跨越直接块和间接块
+        }else if(block_read_start_idx < 12 && block_read_end_idx >= 12){
+            // 先将间接块读取进来
+            block_idx = block_read_start_idx;
+            while(block_idx < 12){
+                all_blocks[block_idx] = file->fd_inode->i_sectors[block_idx];
+                block_idx++;
+            }
+            // 确保分配了间接块
+            ASSERT(file->fd_inode->i_sectors[12] != 0);
+
+            indirect_block_table = file->fd_inode->i_sectors[12];
+            ide_read(cur_part->my_disk, indirect_block_table, all_blocks+12, 1);
+
+        // 情况三: 数据再间接块中
+        }else {
+            ASSERT(file->fd_inode->i_sectors[12] != 0);
+
+            indirect_block_table = file->fd_inode->i_sectors[12];
+            ide_read(cur_part->my_disk, indirect_block_table, all_blocks+12, 1);
+        }
+    }
+
+    // 获取到了需要的块地址到all_blocks,下面开始读数据
+    uint32_t sec_idx, sec_lba, sec_off_bytes, sec_left_bytes, chunk_size;
+    uint32_t bytes_read = 0;
+
+    while(bytes_read < size){
+        sec_idx = file->fd_pos / BLOCK_SIZE;
+        sec_lba = all_blocks[sec_idx];
+
+        sec_off_bytes = file->fd_pos % BLOCK_SIZE;
+        sec_left_bytes = BLOCK_SIZE - sec_off_bytes;
+
+        chunk_size = size_left < sec_left_bytes?size_left: sec_left_bytes;
+
+        memset(io_buf, 0, BLOCK_SIZE);
+        ide_read(cur_part->my_disk, sec_lba, io_buf, 1);
+        memcpy(buf_dst, io_buf + sec_off_bytes, chunk_size);
+
+        buf_dst += chunk_size;
+        file->fd_pos += chunk_size;
+        bytes_read += chunk_size;
+
+        size_left -= chunk_size;
+    }
+    sys_free(all_blocks);
+    sys_free(io_buf);
+    return bytes_read;
+}
+
+

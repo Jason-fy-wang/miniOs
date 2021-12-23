@@ -32,7 +32,27 @@ int main(void){
 
     uint32_t fd = sys_open("/file1", O_RDWR);
     printf("fd: %d\n", fd);
-    sys_write(fd, "hello world\n", 12);
+    //sys_write(fd, "hello world\n", 12);
+    char buf[64] = {0};
+    int read_bytes = sys_read(fd, buf, 18);
+    printf("1_ read %d bytes: %s\n", read_bytes, buf);
+
+    memset(buf, 0, 64);
+
+    read_bytes = sys_read(fd, buf, 6);
+    printf("2_ read %d bytes: %s \n", read_bytes, buf);
+
+    // close and reopen
+    printf("close and reopen\n");
+    sys_close(fd);
+
+    fd = sys_open("/file1", O_RDWR);
+
+    memset(buf, 0, 64);
+
+    read_bytes = sys_read(fd, buf,24);
+    printf("3_ read %d bytes: %s\n", read_bytes, buf);
+
     sys_close(fd);
     printf("%d closed now\n", fd);
 
