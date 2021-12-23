@@ -30,8 +30,9 @@ int main(void){
     thread_start("threadA", 31, k_thread_a,"A_");
     thread_start("threadB", 31, k_thread_b,"B_");
 
-    uint32_t fd = sys_open("/file1", O_RDONLY);
+    uint32_t fd = sys_open("/file1", O_RDWR);
     printf("fd: %d\n", fd);
+    sys_write(fd, "hello world\n", 12);
     sys_close(fd);
     printf("%d closed now\n", fd);
 

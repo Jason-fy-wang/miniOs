@@ -53,8 +53,9 @@ uint32_t get_pid(){
     return _syscall0(SYS_GETPID);
 }
 
-uint32_t write(char* str){
-    return _syscall1(SYS_WRITE, str);
+// 把buf中count个字符写入到文件描述符fd
+uint32_t write(uint32_t fd, const char* buf, uint32_t count){
+    return _syscall3(SYS_WRITE, fd, buf, count);
 }
 
 // 申请size字节大小的内存
