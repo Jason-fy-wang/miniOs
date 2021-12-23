@@ -34,21 +34,35 @@ int main(void){
     // printf("fd: %d\n", fd);
     // sys_write(fd, "hello world\n", 12);
     // sys_close(fd);
-    printf( "/dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
+    // printf( "/dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
-    printf("/dir1 create %s\n", sys_mkdir("/dir1")==0?"done":"failed");
+    // printf("/dir1 create %s\n", sys_mkdir("/dir1")==0?"done":"failed");
 
-    printf( "new /dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
+    // printf( "new /dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
-    uint32_t fd1 = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
-    if(fd1 != -1){
-        printf("/dir1/subdir1/file2 create done.\n");
-        sys_write(fd1,"catch me if you can.\n", 21);
-        sys_lseek(fd1, 0, SEEK_SET);
-        char buf[32] = {0};
-        sys_read(fd1, buf, 21);
-        printf("/dir1/subdir1/file2 says: %s\n", buf);
-        sys_close(fd1);
+    // uint32_t fd1 = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
+    // if(fd1 != -1){
+    //     printf("/dir1/subdir1/file2 create done.\n");
+    //     sys_write(fd1,"catch me if you can.\n", 21);
+    //     sys_lseek(fd1, 0, SEEK_SET);
+    //     char buf[32] = {0};
+    //     sys_read(fd1, buf, 21);
+    //     printf("/dir1/subdir1/file2 says: %s\n", buf);
+    //     sys_close(fd1);
+    // }
+
+    struct dir* p_dir = sys_opendir("/dir1/subdir1");
+    if(p_dir){
+        printf("/dir1/subdir1 open done.\n");
+
+        if(sys_closedir(p_dir) == 0){
+            printf("/dir1/subdir1 close done.\n");
+        }else {
+            printf("/dir1/subdir1 close failed.\n");
+        }
+
+    }else {
+        printf("/dir1/subdir1 open failed.\n");
     }
 
     while (1);

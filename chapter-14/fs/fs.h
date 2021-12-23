@@ -60,6 +60,7 @@ int32_t sys_unlink(const char* pathname);
 
 int32_t sys_mkdir(const char* pathname);
 
-
+struct dir*  sys_opendir(const char* name);
+int32_t sys_closedir(struct dir* dir);
 #endif // _FS_FS_H_
 
