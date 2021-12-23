@@ -504,3 +504,38 @@ int32_t sys_read(int32_t fd, void* buf, uint32_t count){
     return file_read(&file_table[_fd], buf, count);
 }
 
+//重置文件读写操作的偏移指针,成功则返回新的偏移量,错误返回-1
+int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence){
+    if(fd < 0){
+        printk("sys_lseek: fd error: %d", fd);
+        return -1;
+    }
+
+    ASSERT(whence >0 && whence < 4);
+    uint32_t _fd = fd_local2global(fd);
+    struct file* pf = &file_table[_fd];
+
+    int32_t new_pos = 0;    // 新的偏移了必须在文件大小内
+    int32_t file_size = (int32_t)pf->fd_inode->i_size;
+    switch(whence) {
+        // 新的读写位置相对于文件开头再增加offset个位移量
+        case SEEK_SET:
+            new_pos = offset;
+            break;
+
+        // 新的读写位置是相对于当前增加offset
+        case SEEK_CUR:
+            new_pos = (int32_t)pf->fd_pos+offset;
+            break;
+        // 新的读写位置是相对于文件尺寸在增加offset偏移量
+        case SEEK_END:
+            new_pos = file_size + offset;
+            break;
+    }
+    if(new_pos < 0 || new_pos > (file_size -1)){
+        return -1;
+    }
+    pf->fd_pos = new_pos;
+
+    return pf->fd_pos;
+}
