@@ -5,6 +5,7 @@
 #include "sync.h"
 #include "global.h"
 #include "bitmap.h"
+#include "string.h"
 
 // 分区结构
 struct partition{

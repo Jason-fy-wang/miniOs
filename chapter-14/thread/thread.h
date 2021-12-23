@@ -8,6 +8,8 @@ typedef void thread_func(void*);
 
 typedef int16_t pid_t;
 
+#define MAX_FILES_OPEN_PER_PROC     8
+
 enum task_status {
     TASK_RUNNING,
     TASK_READY,
@@ -76,6 +78,8 @@ struct task_struct{
     char name[16];
     uint8_t ticks;          // 每次在处理器上执行的时间嘀嗒数
     uint32_t elapsed_ticks; // 占用了多少cpu嘀嗒数
+
+    uint32_t fd_table[MAX_FILES_OPEN_PER_PROC];     //文件描述符数组
 
     struct list_elem general_tag;
 

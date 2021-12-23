@@ -8,6 +8,7 @@
 #include "syscall_init.h"
 #include "syscall.h"
 #include "stdio.h"
+#include "fs.h"
 
 
 void k_thread_a(void *);
@@ -28,6 +29,8 @@ int main(void){
     intr_enable();
     thread_start("threadA", 31, k_thread_a,"A_");
     thread_start("threadB", 31, k_thread_b,"B_");
+
+    sys_open("/file1", O_CREAT);
     while (1);
     return 0;
 }

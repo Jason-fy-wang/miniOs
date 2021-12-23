@@ -3,6 +3,7 @@
 
 #include "stdint.h"
 #include "list.h"
+#include "ide.h"
 
 // inode结构
 struct inode{
@@ -10,7 +11,7 @@ struct inode{
     // 当此inode是文件时,i_size用来指定文件大小,若此iNode是目录, i_size是指该目录下所以目录项大小之和
     uint32_t i_size;
 
-    uint32_t i_oenn_cnts;       // 记录此文件被打开的次数
+    uint32_t i_open_cnts;       // 记录此文件被打开的次数
     bool write_deny;        // 写文件不能并行, 进程写文件前检查此标识
 
     // i_sectors[0-11]是直接块, i_sectors[12]用来存储一级间接指针
@@ -19,5 +20,9 @@ struct inode{
     struct list_elem inode_tag;
 };
 
+void inode_init(uint32_t inode_no,  struct inode* new_inode);
+void inode_sync(struct partition* part, struct inode* inode, void* io_buf);
+struct inode* inode_open(struct partition* part, uint32_t inode_no);
+void inode_close(struct inode* inode);
 
 #endif // _FS_INODE_H_

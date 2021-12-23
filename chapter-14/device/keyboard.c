@@ -198,7 +198,7 @@ static void intr_keyboard_handler(void){
             caps_lock_status = !caps_lock_status;
         }
     }else { // unknown
-        put_str(scancode);
+        put_int(scancode);
         put_str("unknown key\n");
     }
 

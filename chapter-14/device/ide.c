@@ -6,6 +6,7 @@
 #include "timer.h"
 #include "list.h"
 #include "interrupt.h"
+#include "sync.h"
 
 // 定义硬盘个寄存器端口号
 #define reg_data(channel)       (channel->port_base + 0)
