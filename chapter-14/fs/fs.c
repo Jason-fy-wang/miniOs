@@ -432,10 +432,33 @@ int32_t  sys_open(const char* pathname, uint8_t flags){
             printk(" create file\n");
             fd = file_create(search_record.parent_dir, (strrchr(pathname, '/') + 1), flags);
             dir_close(search_record.parent_dir);
+            break;
+        default:        // 其他情况,打开存在的文件 O_RDONLY O_WRONLY, O_RDWR
+            fd = file_open(inode_no, flags);
     }
     // 此fd是指  pcb->fd_table数组中的元素下标
     return fd;
 }
 
+// 将文件描述符转换为文件表的下标
+static uint32_t fd_local2global(uint32_t local_fd){
+    struct task_struct* cur = running_thread();
 
+    int32_t global_fd =  cur->fd_table[local_fd];
+
+    ASSERT(global_fd >= 0 && global_fd < MAX_FILE_OPEN);
+
+    return (uint32_t)global_fd;
+}
+
+// 关闭文件描述符fd指向的文件,成功返回0, 失败-1
+int32_t sys_close(int32_t fd){
+    int32_t ret = -1;
+    if(fd > 2){
+        uint32_t gfd = fd_local2global(fd);
+        ret = file_close(&file_table[gfd]);
+        running_thread()->fd_table[fd] = -1;
+    }
+    return ret;
+}
 

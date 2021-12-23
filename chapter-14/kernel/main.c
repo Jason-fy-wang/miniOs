@@ -22,15 +22,19 @@ int main(void){
     put_str("i am kernel\n");
     init_all();
 
-    process_execute(u_prog_a, "user_a");
-    process_execute(u_prog_b, "user_b");
+    //process_execute(u_prog_a, "user_a");
+    //process_execute(u_prog_b, "user_b");
 
     //打开中断
     intr_enable();
     thread_start("threadA", 31, k_thread_a,"A_");
     thread_start("threadB", 31, k_thread_b,"B_");
 
-    sys_open("/file1", O_CREAT);
+    uint32_t fd = sys_open("/file1", O_RDONLY);
+    printf("fd: %d\n", fd);
+    sys_close(fd);
+    printf("%d closed now\n", fd);
+
     while (1);
     return 0;
 }
