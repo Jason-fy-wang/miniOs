@@ -30,30 +30,26 @@ int main(void){
     thread_start("threadA", 31, k_thread_a,"A_");
     thread_start("threadB", 31, k_thread_b,"B_");
 
-    uint32_t fd = sys_open("/file1", O_RDWR);
-    printf("fd: %d\n", fd);
-    //sys_write(fd, "hello world\n", 12);
-    char buf[64] = {0};
-    int read_bytes = sys_read(fd, buf, 18);
-    printf("1_ read %d bytes: %s\n", read_bytes, buf);
+    // uint32_t fd = sys_open("/file1", O_CREAT|O_RDWR);
+    // printf("fd: %d\n", fd);
+    // sys_write(fd, "hello world\n", 12);
+    // sys_close(fd);
+    printf( "/dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
-    memset(buf, 0, 64);
+    printf("/dir1 create %s\n", sys_mkdir("/dir1")==0?"done":"failed");
 
-    read_bytes = sys_read(fd, buf, 6);
-    printf("2_ read %d bytes: %s \n", read_bytes, buf);
+    printf( "new /dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
-    printf("seek 0\n");
-    sys_lseek(fd,0, SEEK_SET);
-
-    memset(buf, 0, 64);
-
-    read_bytes = sys_read(fd, buf,24);
-    printf("3_ read %d bytes: %s\n", read_bytes, buf);
-
-    sys_close(fd);
-    printf("%d closed now\n", fd);
-
-    printf("/file1 delete %s\n", sys_unlink("/file1") == 0?"done":"failed");
+    uint32_t fd1 = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
+    if(fd1 != -1){
+        printf("/dir1/subdir1/file2 create done.\n");
+        sys_write(fd1,"catch me if you can.\n", 21);
+        sys_lseek(fd1, 0, SEEK_SET);
+        char buf[32] = {0};
+        sys_read(fd1, buf, 21);
+        printf("/dir1/subdir1/file2 says: %s\n", buf);
+        sys_close(fd1);
+    }
 
     while (1);
     return 0;
