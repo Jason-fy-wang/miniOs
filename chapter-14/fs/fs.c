@@ -755,7 +755,75 @@ int32_t sys_closedir(struct dir* dir){
     return ret;
 }
 
+// 读取目录,成功则返回1个目录项,失败返回NULL
+struct dir_entry* dir_read(struct dir* dir){
+    struct dir_entry* dir_e = (struct dir_entry*)dir->dir_buf;
+    struct inode* dir_inode = dir->inode;
+    uint32_t all_blocks[140] = {0};
+    uint32_t block_cnt = 12, block_idx = 0, dir_entry_idx = 0;
 
+    while(block_idx < 12){
+        all_blocks[block_idx] = dir_inode->i_sectors[block_idx];
+        block_idx++;
+    }
 
+    if(dir_inode->i_sectors[12] != 0){
+        ide_read(cur_part->my_disk, dir_inode->i_sectors[12], all_blocks+12, 1);
+        block_cnt = 140;
+    }
+
+    block_idx= 0;
+
+    // 当前目录项的偏移
+    uint32_t cur_dir_entry_pos = 0;
+    uint32_t dir_entry_size = cur_part->sb->dir_entry_size;
+    uint32_t dir_entry_per_sec = SECTOR_SIZE / dir_entry_size;
+
+    // 在目录大小内遍历
+    while(dir->dir_pos < dir_inode->i_size){
+        if(dir->dir_pos >= dir_inode->i_size){
+            return NULL;
+        }
+
+        if(all_blocks[block_idx] == 0){
+            // 如果此块为空,继续下块
+            block_idx++;
+            continue;
+        }
+
+        memset(dir_e, 0, SECTOR_SIZE);
+        ide_read(cur_part->my_disk, all_blocks[block_idx], dir_e, 1);
+        dir_entry_idx = 0;
+        // 遍历扇区内所有目录项
+        while(dir_entry_idx < dir_entry_per_sec){
+            if((dir_e + dir_entry_idx)->f_type) {   // ftype 不等于 FT_UNKNOWN
+            // 判断是不是最新的目录项,避免返回曾经已经返回的目录项
+                if(cur_dir_entry_pos < dir->dir_pos){
+                    cur_dir_entry_pos += dir_entry_size;
+                    dir_entry_idx++;
+                    continue;
+                }
+                ASSERT(cur_dir_entry_pos == dir->dir_pos);
+                dir->dir_pos += dir_entry_size;
+                // 更新为新位置, 即下一个返回的目录项地址
+                return dir_e + dir_entry_idx;
+            }
+            dir_entry_idx++;
+        }
+        block_idx++;
+    }
+    return NULL;
+}
+
+// 读取目录dir的1个目录项,成功后返回其目录项地址
+struct dir_entry* sys_readdir(struct dir* dir){
+    ASSERT(dir != NULL);
+    return dir_read(dir);
+}
+
+// 把目录dir的指针dir_pos 设置0
+void sys_rewinddir(struct dir* dir){
+    dir->dir_pos = 0;
+}
 
 

@@ -9,7 +9,7 @@
 #include "syscall.h"
 #include "stdio.h"
 #include "fs.h"
-
+#include "dir.h"
 
 void k_thread_a(void *);
 void k_thread_b(void*);
@@ -54,6 +54,16 @@ int main(void){
     struct dir* p_dir = sys_opendir("/dir1/subdir1");
     if(p_dir){
         printf("/dir1/subdir1 open done.\n");
+        char* type = NULL;
+        struct dir_entry* dir_e = NULL;
+        while((dir_e = sys_readdir(p_dir))){
+            if(dir_e->f_type == FT_REGULAR){
+                type = "regular";
+            }else {
+                type = "dictory";
+            }
+            printf("  %s %s \n", type, dir_e->filename);
+        }
 
         if(sys_closedir(p_dir) == 0){
             printf("/dir1/subdir1 close done.\n");
