@@ -1,7 +1,7 @@
 BUILD=build
 ENTRY_POINT=0xc0001500
 BOOTDISK=hd60M.img
-FLAG=-I include/ -I lib/ -I lib/kernel/ -I kernel/ -I device/ -I thread/ -I ../lib/user/
+FLAG=-I include/ -I lib/ -I lib/kernel/ -I shell/ -I kernel/ -I device/ -I thread/ -I ../lib/user/
 CC=gcc
 CFLAGS=-m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes -nostdinc
 LD=ld
@@ -15,7 +15,8 @@ KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o
 			$(BUILD)/switch.o $(BUILD)/console.o  $(BUILD)/sync.o $(BUILD)/keyboard.o \
 			$(BUILD)/ioqueue.o $(BUILD)/tss.o $(BUILD)/process.o $(BUILD)/syscall.o	\
 			$(BUILD)/syscall_init.o $(BUILD)/stdio.o $(BUILD)/stdio_kernel.o $(BUILD)/ide.o 	\
-			$(BUILD)/fs.o $(BUILD)/dir.o $(BUILD)/file.o $(BUILD)/inode.o  $(BUILD)/fork.o
+			$(BUILD)/fs.o $(BUILD)/dir.o $(BUILD)/file.o $(BUILD)/inode.o $(BUILD)/fork.o	\
+			$(BUILD)/shell.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"
@@ -46,6 +47,9 @@ $(BUILD)/tss.o:
 $(BUILD)/fs.o:
 	(cd fs; make)
 
+$(BUILD)/shell.o:
+	(cd shell; make)
+
 .PHONY: clean disk dir boot movlib
 
 movlib:
@@ -75,7 +79,7 @@ disk:
 clean:
 	$(RM) -r build
 
-bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/thread.o $(BUILD)/tss.o $(BUILD)/fs.o $(BUILD)/main.o
+bootsec:$(BUILD)/mbr.bin $(BUILD)/loader.bin $(BUILD)/timer.o $(BUILD)/thread.o $(BUILD)/tss.o $(BUILD)/fs.o $(BUILD)/shell.o $(BUILD)/main.o
 
 all:dir bootsec $(BUILD)/kernel.bin
 

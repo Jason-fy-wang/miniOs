@@ -1,11 +1,11 @@
 BUILD=../build
 CC=gcc
-CFLAG=-I ../include/ -I ../lib/ -I ../shell/ -I ../lib/kernel/ -I ../device -I . -I ../thread/ -I ../fs/  -I ../user/ -I ../lib/user/ -nostdinc -m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes
+CFLAG=-I . -I ../kernel -I ../lib/kernel/ -I ../lib/user/ -I ../device/ -I ../thread/ -I ../fs/  -I ../lib -I ../user/ -m32 -fno-stack-protector -Wall -fno-builtin -W -Wstrict-prototypes -Wmissing-prototypes -nostdinc
 LD=ld
 AS=nasm -f elf
 
-#$(BUILD)/intrhandle.o: kernel.S
-	#$(AS) -f elf -o $@ $^
+#$(BUILD)/print.o: kernel/print.S
+	#nasm -f elf -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAG) -c -o $(BUILD)/$*.o  $<
@@ -16,14 +16,16 @@ AS=nasm -f elf
 %.s: %.c
 	$(CC) $(CFLAG) -S -o $(BUILD)/$*.s $<
 
+
+
 SRC=$(subst .c,.o, $(wildcard *.c))
 OBJ=$(subst .S,.o, $(wildcard *.S))
 ASM=$(subst .c,.s, $(wildcard *.c))
 
 all: $(SRC) $(OBJ)
 	@echo $(SRC)
-	@echo $(ASM)
 	@echo $(OBJ)
+
 
 .PHONY: movlib clean
 
@@ -31,7 +33,6 @@ clean:
 	rm -f *.o *.s
 
 movlib:
+	(cd kernel; make movlib)
 	-mv *.o $(BUILD)
 	-mv *.s $(BUILD)
-
-

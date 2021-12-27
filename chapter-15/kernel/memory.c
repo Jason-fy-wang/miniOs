@@ -7,6 +7,7 @@
 #include "string.h"
 #include "sync.h"
 #include "interrupt.h"
+#include "stdio_kernel.h"
 
 /***************  位图地址 ********************
  * 因为0xc009f000是内核主线程栈顶，0xc009e000是内核主线程的pcb.

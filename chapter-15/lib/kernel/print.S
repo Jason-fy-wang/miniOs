@@ -151,6 +151,38 @@ put_str:
     pop ebx
     ret
 
+;-------------------- 清屏操作
+global cls_screen
+cls_screen:
+    pushad
+    mov ax, SELECTOR_VIDEO  ; 显存选择子
+    mov gs, ax
+
+    mov ebx,0
+    mov ecx, 80*25
+.cls:
+    mov word [gs:ebx], 0x0720   ; 0x720是黑底白字的空格键
+    add ebx, 2
+    loop .cls
+    mov ebx, 0
+.set_cursor:
+    ; 设置高8位
+    mov dx, 0x03d4
+    mov al, 0x0e
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bh      ;bh 是bx的高8位
+    out dx, al
+
+    ; 设置低8位
+    mov dx, 0x03d4
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bl          ;bl 是bx的低8位
+    out dx, al
+    popad
+    ret
 ; --------------------------------将小端字节序的数字变成对应的ASCII后,倒置
 ; 输入: 栈中参数为待打印的数字
 ; 输出: 在屏幕是哪个打印16位进制数字, 并不会打印前缀0x
