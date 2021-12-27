@@ -121,6 +121,15 @@ int main(void){
     sys_getcwd(cwd_buf,32);
     printf("new cwd: %s \n", cwd_buf);
 
+    struct stat obj_stat;
+    sys_stat("/", &obj_stat);
+    printf("root dir info:\n i_no:%d\n size:%d\n file_type:%s\n", obj_stat.st_ino, obj_stat.st_size,
+            obj_stat.st_filetype==2?"directory":"regular");
+
+    sys_stat("/dir1", &obj_stat);
+    printf("root dir info:\n i_no:%d\n size:%d\n file_type:%s\n", obj_stat.st_ino, obj_stat.st_size,
+            obj_stat.st_filetype==2?"directory":"regular");
+
     while (1);
     return 0;
 }
