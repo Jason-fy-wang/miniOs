@@ -93,6 +93,8 @@ struct task_struct{
 
     uint32_t cwd_inode_nr;          // 进程所在的工作目录inode编号
 
+    int16_t parent_pid;             // 父进程id
+
     uint32_t stack_magic; // 栈边界标记,用于检测栈溢出
 };
 
@@ -115,6 +117,8 @@ void thread_unblock(struct task_struct *pthread);
 void thread_init(void);
 
 void thread_yield(void);
+
+pid_t fork_pid(void);
 
 #endif /* __KERNEL_THREAD_H__ */
 

@@ -194,6 +194,25 @@ void * malloc_page(enum pool_flags pf, uint32_t pg_cnt){
 
 }
 
+// 安装1页大小的 vaddr,专门针对 fork时虚拟地址位图无需操作的情况
+void* get_a_page_without_opvaddrbitmap(enum pool_flags pf, uint32_t vaddr){
+
+    struct pool* mem_pool = pf & PF_KERNEL ? & kernel_pool: &user_pool;
+    lock_acquire(&mem_pool->lock);
+
+    void* page_phyaddr = palloc(mem_pool);
+    if(page_phyaddr == NULL){
+        printk("get_a_page_without_opvaddrbitmap phyaddr failed\n");
+        lock_release(&mem_pool->lock);
+        return NULL;
+    }
+
+    page_table_add((void*)vaddr, page_phyaddr);
+    lock_release(&mem_pool->lock);
+    return (void*)vaddr;
+}
+
+
 // 释放以虚拟地址vaddr为起始的cnt个物理页框
 void mfree_page(enum pool_flags pf, void* _vaddr, uint32_t pg_cnt){
     uint32_t pg_phy_addr;

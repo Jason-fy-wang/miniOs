@@ -42,8 +42,8 @@ static bool mount_partition(struct list_elem* pelem, int arg){
 
          // 这里打印信息,主要用于调试
         sb = cur_part->sb;
-        printk(" %s info:\n", part->name);
-        printk(" magic:0x%x\n, part_lba_base:0x%x\n, all_sectors:0x%x\n, inode_cnt:0x%x\n block_bitmap_lba:0x%x\n block_bitmap_sectors:0x%x\n inode_bitmap_lba:0x%x\n inode_bitmap_sectors:0x%x\n inode_table_lba:0x%x\n, inode_table_sectors:0x%x\n data_start_lba:0x%x\n", sb->magic,sb->part_lba_base, sb->sec_cnt, sb->inode_cnt, sb->block_bitmap_lba,sb->block_bitmap_sects, sb->inode_bitmap_lba,sb->inode_bitmap_sects, sb->inode_table_lba, sb->inode_table_sects, sb->data_start_lba);
+        // printk(" %s info:\n", part->name);
+        // printk(" magic:0x%x\n, part_lba_base:0x%x\n, all_sectors:0x%x\n, inode_cnt:0x%x\n block_bitmap_lba:0x%x\n block_bitmap_sectors:0x%x\n inode_bitmap_lba:0x%x\n inode_bitmap_sectors:0x%x\n inode_table_lba:0x%x\n, inode_table_sectors:0x%x\n data_start_lba:0x%x\n", sb->magic,sb->part_lba_base, sb->sec_cnt, sb->inode_cnt, sb->block_bitmap_lba,sb->block_bitmap_sects, sb->inode_bitmap_lba,sb->inode_bitmap_sects, sb->inode_table_lba, sb->inode_table_sects, sb->data_start_lba);
         /************将硬盘上的块位图读入到 内存*********/
         cur_part->block_bitmap.bits = (uint8_t*)sys_malloc(sb_buf->block_bitmap_sects*SECTOR_SIZE);
         if(cur_part->block_bitmap.bits == NULL){

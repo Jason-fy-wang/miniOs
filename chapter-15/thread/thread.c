@@ -49,6 +49,10 @@ static pid_t allocate_pid(void){
     return next_pid;
 }
 
+// 线程创建pid
+pid_t fork_pid(void){
+    return allocate_pid();
+}
 
 // 初始化线程栈 thread_stack, 将待执行的函数和参数放入 thread_stack中相应位置
 void thread_create(struct task_struct *pthread, thread_func function, void *func_arg){
@@ -100,6 +104,7 @@ void init_thread(struct task_struct *pthread, char*name, int prio){
         fd_idx++;
     }
     pthread->cwd_inode_nr = 0;  // 默认以根目录为默认工作路径
+    pthread->parent_pid = -1;       // 表示没有父进程
     pthread->stack_magic = 0x19870916;      // 魔数
 }
 
@@ -212,12 +217,15 @@ void thread_yield(void){
     intr_set_status(old_status);
 }
 
+extern void init(void);
 // 初始化 线程环境
 void thread_init(void){
     put_str(" thread_init start\n");
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     lock_init(&pid_lock);
+    // 创建第一个用户进程
+    process_execute(init, "init");
     make_main_thread();
     idle_thread = thread_start("idle", 10, idle,NULL);
     put_str(" thread init done\n");

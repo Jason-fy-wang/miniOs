@@ -58,6 +58,10 @@ uint32_t write(uint32_t fd, const char* buf, uint32_t count){
     return _syscall3(SYS_WRITE, fd, buf, count);
 }
 
+pid_t fork(void){
+    return _syscall0(SYS_FORK);
+}
+
 // 申请size字节大小的内存
 void* malloc(uint32_t size){
     return (void*)_syscall1(SYS_MALLOC, size);
