@@ -354,3 +354,36 @@ bool delete_dir_entry(struct partition *part, struct dir* pdir, uint32_t inode_n
     return false;
 }
 
+// 判断目录是否为空
+bool dir_is_empty(struct dir* dir){
+    struct inode* dir_inode=  dir->inode;
+    // 只有 . 和 .. 目录,则目录为空
+    return (dir_inode->i_size == cur_part->sb->dir_entry_size*2);
+}
+
+
+// 在父目录parent_dir中删除child_dir
+int32_t dir_remove(struct dir* parent_dir, struct dir* child_dir){
+    struct inode* childe_dir_inode = child_dir->inode;
+    // 空目录只在inode_i_sectors[0]中有扇区,其他扇区为空
+    int32_t block_idx = 1;
+    while(block_idx < 13){
+        ASSERT(childe_dir_inode->i_sectors[block_idx] == 0);
+        block_idx++;
+    }
+
+    void* io_buf = sys_malloc(SECTOR_SIZE*2);
+    if(io_buf == NULL){
+        printk("dir_remove : malloc for io_buf failed.\n");
+        return -1;
+    }
+
+    // 在父目录中删除子目录child_dir对应的目录项
+    delete_dir_entry(cur_part, parent_dir, childe_dir_inode->i_no, io_buf);
+
+    // 回收inode中i_sectors中所占用的扇区
+    inode_release(cur_part, childe_dir_inode->i_no);
+    sys_free(io_buf);
+    return 0;
+}
+

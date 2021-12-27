@@ -326,7 +326,7 @@ static int search_file(const char* pathname, struct path_search_record* search_r
     struct dir_entry dir_e;
 
     // 记录路径解析出来的各级名称,如路径/a/b/c, 数组name 每次的值分别是 a b c
-    char name[MAX_PATH_LENGTH] = {0};
+    char name[MAX_FILE_NAME_LEN] = {0};
 
     search_record->parent_dir = parent_dir;
     search_record->file_type = FT_UNKNOWN;
@@ -343,7 +343,7 @@ static int search_file(const char* pathname, struct path_search_record* search_r
 
         // 在所给的目录中查找文件
         if(search_dir_entry(cur_part, parent_dir, name, &dir_e)){
-            memset(name,0, MAX_PATH_LENGTH);
+            memset(name,0, MAX_FILE_NAME_LEN);
             //若sub_path 不等于NULL, 也就是未结束, 继续拆分路径
             if(sub_path){
                 sub_path = path_parse(sub_path, name);
@@ -380,7 +380,7 @@ static int search_file(const char* pathname, struct path_search_record* search_r
 // 打开 或 创建文件成功后,返回文件描述符
 int32_t  sys_open(const char* pathname, uint8_t flags){
     // 对目录要用dir_open, 这里只有open文件
-    if(pathname[strlen(pathname) -1 ] == '/'){
+    if(pathname[strlen(pathname) -1] == '/'){
         printk("can't open a directory %s\n", pathname);
         return -1;
     }
@@ -542,7 +542,7 @@ int32_t sys_lseek(int32_t fd, int32_t offset, uint8_t whence){
 
 // 删除文件(非目录), 成功返回0, 失败返回-1
 int32_t sys_unlink(const char* pathname){
-    ASSERT(strlen(pathname) < MAX_FILE_NAME_LEN);
+    ASSERT(strlen(pathname) < MAX_PATH_LENGTH);
 
     // 先检查文件是否存在
     struct path_search_record search_record;
@@ -826,4 +826,33 @@ void sys_rewinddir(struct dir* dir){
     dir->dir_pos = 0;
 }
 
+// 删除空目录,成功返回0, 失败返回-1
+int32_t sys_rmdir(const char* pathname){
+    /// 先检查待删除的文件是否存在
+    struct path_search_record search_record;
+    memset(&search_record, 0, sizeof(struct path_search_record));
+    int inode_no = search_file(pathname, &search_record);
+    ASSERT(inode_no != 0);
+    int retval = -1;
+
+    if(inode_no == -1){
+        printk("In %s , sub path %s not exist.\n", pathname, search_record.searched_path);
+    }else {
+        if (search_record.file_type == FT_REGULAR){
+            printk("%s is a regular file!\n", pathname);
+        }else {
+            struct dir* dir = dir_open(cur_part,inode_no);
+            if(!dir_is_empty(dir)){     // 目录非空,不可删除
+                printk("dir %s it not empty, it's not allowed to delete a nonempty directory.\n",pathname);
+            }else {
+                if(!dir_remove(search_record.parent_dir, dir)){
+                    retval = 0;
+                }
+            }
+            dir_close(dir);
+        }
+    }
+    dir_close(search_record.parent_dir);
+    return retval;
+}
 

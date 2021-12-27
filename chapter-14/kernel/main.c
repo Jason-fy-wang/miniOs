@@ -27,20 +27,20 @@ int main(void){
 
     //打开中断
     intr_enable();
-    thread_start("threadA", 31, k_thread_a,"A_");
-    thread_start("threadB", 31, k_thread_b,"B_");
+    //thread_start("threadA", 31, k_thread_a,"A_");
+    //thread_start("threadB", 31, k_thread_b,"B_");
 
     // uint32_t fd = sys_open("/file1", O_CREAT|O_RDWR);
     // printf("fd: %d\n", fd);
     // sys_write(fd, "hello world\n", 12);
     // sys_close(fd);
-    // printf( "/dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
+    //printf( "/dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
     // printf("/dir1 create %s\n", sys_mkdir("/dir1")==0?"done":"failed");
 
     // printf( "new /dir1/subdir1 create %s\n", sys_mkdir("/dir1/subdir1")==0?"done":"failed");
 
-    // uint32_t fd1 = sys_open("/dir1/subdir1/file2", O_CREAT|O_RDWR);
+    // uint32_t fd1 = sys_open("/dir1/subdir1/file2", O_RDWR);
     // if(fd1 != -1){
     //     printf("/dir1/subdir1/file2 create done.\n");
     //     sys_write(fd1,"catch me if you can.\n", 21);
@@ -49,6 +49,8 @@ int main(void){
     //     sys_read(fd1, buf, 21);
     //     printf("/dir1/subdir1/file2 says: %s\n", buf);
     //     sys_close(fd1);
+    // }else {
+    //     printf("/dir1/subdir1/file2  open failed.\n");
     // }
 
     struct dir* p_dir = sys_opendir("/dir1/subdir1");
@@ -56,6 +58,40 @@ int main(void){
         printf("/dir1/subdir1 open done.\n");
         char* type = NULL;
         struct dir_entry* dir_e = NULL;
+        while((dir_e = sys_readdir(p_dir))){
+            if(dir_e->f_type == FT_REGULAR){
+                type = "regular";
+            }else {
+                type = "dictory";
+            }
+            printf("  %s %s \n", type, dir_e->filename);
+        }
+
+        printf("try to delete nonempty directory /dir1/subdir1.\n");
+
+        if(sys_rmdir("/dir1/subdir1") == -1){
+            printf("sys_rmdir: /dir1/subdir1 delete failed.\n");
+        }
+
+        printf("try to delete /dir1/subdir1/file2 .\n");
+
+        if(sys_rmdir("/dir1/subdir1/file2") == -1){
+            printf("sys_rmdir: /dir1/subdir1/file2 delete failed.\n");
+        }
+
+        if(sys_unlink("/dir1/subdir1/file2") == 0){
+            printf("sys_unlink: /dir1/subdir1/file2 delete done.\n");
+        }
+
+        printf("try to delete directory /dir1/subdir1 again.\n");
+
+        if(sys_rmdir("/dir1/subdir1") == 0){
+            printf("/dir1/subdir1 delete done.\n");
+        }
+
+        printf("/dir1 content after delete /dir1/subdir1: \n");
+        sys_rewinddir(p_dir);
+
         while((dir_e = sys_readdir(p_dir))){
             if(dir_e->f_type == FT_REGULAR){
                 type = "regular";
