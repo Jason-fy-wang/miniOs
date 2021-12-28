@@ -120,5 +120,7 @@ void thread_yield(void);
 
 pid_t fork_pid(void);
 
+void sys_ps(void);
+
 #endif /* __KERNEL_THREAD_H__ */
 

@@ -5,6 +5,8 @@
 #include "syscall.h"
 #include "file.h"
 #include "string.h"
+#include "buildin_cmd.h"
+
 
 #define cmd_len 128     // 最大支持键入128个字符的命令输入
 #define MAX_ARG_NR 16   // 加上命令名外, 最多支持15个参数
@@ -127,9 +129,11 @@ void my_shell(void){
             continue;
         }
 
+        char buf[MAX_PATH_LENGTH] = {0};
         int32_t arg_idx = 0;
         while(arg_idx < argc){
-            printf("%s ", argv[arg_idx]);
+            make_clear_abs_path(argv[arg_idx], buf);
+            printf("%s -> %s\n", argv[arg_idx], buf);
             arg_idx++;
         }
         printf("\n");
