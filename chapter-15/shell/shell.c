@@ -1,6 +1,6 @@
 #include "shell.h"
 #include "stdio.h"
-#include "debug.h"
+#include "assert.h"
 #include "stdint.h"
 #include "syscall.h"
 #include "file.h"
@@ -10,8 +10,9 @@
 #define MAX_ARG_NR 16   // 加上命令名外, 最多支持15个参数
 
 // 存储输入的命令
-static char cmd_line[cmd_len] = {0};
+static char cmd_line[MAX_PATH_LENGTH] = {0};
 
+char final_path[MAX_PATH_LENGTH] = {0};
 // 用来记录当前目录,是当前目录的缓存,每次执行命令时会更新此内容
 char cwd_cache[64] = {0};
 
@@ -22,7 +23,7 @@ void print_prompt(void){
 
 // 从键盘缓冲区中最大键入count个字符到buf
 static void readline(char* buf, int32_t count){
-    ASSERT(buf != NULL && count > 0);
+    assert(buf != NULL && count > 0);
     char* pos = buf;
     while(read(stdin_no, pos, 1) != -1 && (pos - buf) < count){
         switch(*pos){
@@ -37,6 +38,26 @@ static void readline(char* buf, int32_t count){
                     putchar('\b');
                 }
                 break;
+
+            // ctrl+l 清屏
+            case 'l'-'a':
+                // 1.先将当前的字符 'l'- 'a' 设置为0
+                *pos = 0;
+                // 2.再将屏幕清空
+                clear();
+                // 3. 打印提示符
+                print_prompt();
+                // 4.将之前键入的内容再次打印
+                printf("%s", buf);
+                break;
+
+            // ctrl_u 清掉输入
+            case 'u'-'a':
+                while(buf != pos){
+                    putchar('\b');
+                    *(pos--) = 0;
+                }
+                break;
             default:
                 putchar(*pos);
                 pos++;
@@ -46,16 +67,86 @@ static void readline(char* buf, int32_t count){
 }
 
 
-// shell
+// 分析字符串cmd_str中以token为分隔符的单词,将各单词的指针存入argv数组中
+static int32_t cmd_parse(char* cmd_str, char** argv, char token){
+    assert(cmd_str != NULL);
+    int32_t arg_idx = 0;
+    while(arg_idx < MAX_ARG_NR){
+        argv[arg_idx] = NULL;
+        arg_idx++;
+    }
+
+    char* next = cmd_str;
+    int32_t argc = 0;
+    // 外层循环处理整个命令行
+    while(*next){
+        // 去除命令字或参数之间的空格
+        while(*next == token){
+            next++;
+        }
+
+        // 处理最后一个参数后接空格的情况, 如 'ls dir2 '
+        if(*next == 0){
+            break;
+        }
+
+        argv[argc] = next;
+        // 内层循环处理命令行中每个命令字及参数
+        while(*next && *next != token){
+            next++;
+        }
+        // 如果未结束(是token字符), 使token变为0
+        if(*next){
+            *next++ = 0;    // 将token替换为字符串结束符0,作为一个单词的结束,并将字符串指针next指向下一个字符
+        }
+        if(argc > MAX_ARG_NR){
+            return -1;
+        }
+        argc++;
+    }
+    return argc;
+}
+
+char* argv[MAX_ARG_NR];
+int32_t argc = -1;
+
 void my_shell(void){
     cwd_cache[0] = '/';
     while(1){
         print_prompt();
-        memset(cmd_line, 0, cmd_len);
-        readline(cmd_line, cmd_len);
+        memset(final_path,0, MAX_PATH_LENGTH);
+        memset(cmd_line, 0, MAX_PATH_LENGTH);
+        readline(cmd_line, MAX_PATH_LENGTH);
         if(cmd_line[0] == 0) {      // 只键入一个回车
             continue;
         }
+        argc = -1;
+        argc = cmd_parse(cmd_line, argv, ' ');
+        if(argc == -1){
+            printf("num of arguments exceed %d\n", MAX_PATH_LENGTH);
+            continue;
+        }
+
+        int32_t arg_idx = 0;
+        while(arg_idx < argc){
+            printf("%s ", argv[arg_idx]);
+            arg_idx++;
+        }
+        printf("\n");
     }
-    PANIC("my_shell: should not be here.");
+    panic("my_shell: should not be here.");
 }
+
+// shell
+// void my_shell(void){
+//     cwd_cache[0] = '/';
+//     while(1){
+//         print_prompt();
+//         memset(cmd_line, 0, cmd_len);
+//         readline(cmd_line, cmd_len);
+//         if(cmd_line[0] == 0) {      // 只键入一个回车
+//             continue;
+//         }
+//     }
+//     panic("my_shell: should not be here.");
+// }

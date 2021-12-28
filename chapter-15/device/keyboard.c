@@ -180,6 +180,14 @@ static void intr_keyboard_handler(void){
 
         // 处理ASCII码不为0
         if(cur_char){
+            /******快捷键ctrl + l 和ctrl + u的处理******
+             * 下面是把ctrl+l 和ctrl+u这两种组合键产生的字符设置为 (cur_char的asc码-字符a的asc码)
+             * 此差值比较小,属于asc码表中不可见的字符部分,故不会产生可见字符
+             * 我们在shell中将ascii值为 l-a 和 u-a 分别处理为清屏和删除输入的快捷键
+             */
+            if((ctrl_down_last && cur_char == 'l') || (ctrl_down_last && cur_char == 'u')){
+                cur_char -= 'a';
+            }
             //put_char(cur_char);
             if(!ioq_full(&kbd_buf)){
                 //put_char(cur_char);

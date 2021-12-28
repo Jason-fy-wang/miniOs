@@ -16,7 +16,7 @@ KERNEL_SRC=$(BUILD)/main.o $(BUILD)/print.o $(BUILD)/init.o $(BUILD)/interrupt.o
 			$(BUILD)/ioqueue.o $(BUILD)/tss.o $(BUILD)/process.o $(BUILD)/syscall.o	\
 			$(BUILD)/syscall_init.o $(BUILD)/stdio.o $(BUILD)/stdio_kernel.o $(BUILD)/ide.o 	\
 			$(BUILD)/fs.o $(BUILD)/dir.o $(BUILD)/file.o $(BUILD)/inode.o $(BUILD)/fork.o	\
-			$(BUILD)/shell.o
+			$(BUILD)/shell.o $(BUILD)/assert.o
 
 $(BUILD)/mbr.bin: boot/mbr.S
 	@echo "build mbr.bin"
